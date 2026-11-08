@@ -175,8 +175,197 @@ btn.disabled=false;
 async function loadLive(){
 const box=document.getElementById('live-results');
 box.innerHTML='<p class="small">Consultando partidos...</p>';
+html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>URRU PREDICTIONS PRO</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#080e0a;color:white;font-family:Arial,sans-serif}
+header{background:#111c15;padding:22px;border-bottom:1px solid #294633}
+h1{color:#75ed98;font-size:25px;margin:0}
+header p,.small{color:#9aada0;font-size:12px}
+nav{display:flex;overflow:auto;background:#101a13;padding:10px;gap:8px}
+nav button{background:#1b3022;color:white;border:1px solid #35513c;padding:10px;border-radius:8px;white-space:nowrap}
+main{max-width:750px;margin:auto;padding:15px}
+.card{background:#142019;border:1px solid #304735;border-radius:13px;padding:16px;margin-bottom:14px}
+h2{font-size:18px}
+label{display:block;color:#aab9ae;font-size:12px;margin-top:13px}
+input,select{width:100%;padding:13px;margin-top:6px;background:#09130d;color:white;border:1px solid #405543;border-radius:8px;font-size:15px}
+button.primary{width:100%;padding:14px;background:#70e994;color:#092012;border:0;border-radius:9px;font-weight:bold;margin-top:16px}
+button:disabled{opacity:.5}
+.green{color:#78ed9b}
+.result{padding:12px;background:#0c1710;border-radius:9px;margin-top:9px;border:1px solid #304735}
+.metric{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.metric div{background:#0c1710;padding:12px;border-radius:8px;border:1px solid #304735}
+.metric b{display:block;color:#78ed9b;margin-top:5px}
+.hidden{display:none}
+footer{text-align:center;padding:20px;color:#83988a;font-size:11px}
+</style>
+</head>
+<body>
+<header>
+<h1>⚽ URRU PREDICTIONS</h1>
+<p>PRO · FOOTBALL INTELLIGENCE</p>
+</header>
+
+<nav>
+<button onclick="show('buscar')">🔎 Analizar</button>
+<button onclick="show('live')">🔴 En vivo</button>
+<button onclick="show('saved')">🎯 Pronósticos</button>
+</nav>
+
+<main>
+<section id="buscar">
+<div class="card">
+<h2>🔎 BUSCAR ENFRENTAMIENTO</h2>
+
+<label>Equipo local</label>
+<input id="home" placeholder="Ej. Real Madrid">
+
+<label>Equipo visitante</label>
+<input id="away" placeholder="Ej. Valencia">
+
+<label>Competición</label>
+<select id="league">
+<option value="">Todas las competiciones</option>
+<option>Premier League</option>
+<option>LaLiga</option>
+<option>Serie A</option>
+<option>Bundesliga</option>
+<option>Champions League</option>
+<option>Ligue 1</option>
+<option>Liga BetPlay</option>
+</select>
+
+<button class="primary" id="analyze" onclick="analyze()">⚡ GENERAR PRONÓSTICO</button>
+<p id="message" class="small"></p>
+</div>
+
+<div id="report" class="card hidden">
+<h2>📊 INFORME DEL PARTIDO</h2>
+<h3 id="match" class="green"></h3>
+<div id="details"></div>
+<p id="source" class="small"></p>
+</div>
+</section>
+
+<section id="live" class="hidden">
+<div class="card">
+<h2>🔴 PARTIDOS EN DIRECTO</h2>
+<p class="small">Marcadores y estadísticas en tiempo real.</p>
+<button class="primary" onclick="loadLive()">ACTUALIZAR PARTIDOS</button>
+<div id="live-results"></div>
+</div>
+</section>
+
+<section id="saved" class="hidden">
+<div class="card">
+<h2>🎯 MIS PRONÓSTICOS</h2>
+<div id="saved-results" class="small">Todavía no hay pronósticos guardados.</div>
+</div>
+</section>
+
+<div class="card">
+<h2>📈 MERCADOS DISPONIBLES</h2>
+<div class="result">⚽ Ganador y doble oportunidad</div>
+<div class="result">🥅 Más/menos 0.5, 1.5, 2.5 y 3.5 goles</div>
+<div class="result">🎯 Ambos equipos marcan: SÍ / NO</div>
+<div class="result">🚩 Córners: 7.5, 8.5, 9.5 y 10.5</div>
+<div class="result">🟨 Tarjetas amarillas y rojas</div>
+<div class="result">🥅 Tiros totales y a puerta</div>
+<div class="result">⏱️ Primer tiempo y segundo tiempo</div>
+</div>
+
+<div class="card">
+<h2>🔐 ADMINISTRADOR</h2>
+<p class="small">El acceso administrativo seguro se habilitará desde el servidor.</p>
+</div>
+</main>
+
+<footer>
+URRU PREDICTIONS PRO<br>
+Analiza con estadísticas · Apuesta responsablemente
+</footer>
+
+<script>
+function show(section){
+document.querySelectorAll('main section').forEach(s=>s.classList.add('hidden'));
+document.getElementById(section).classList.remove('hidden');
+}
+
+async function analyze(){
+const home=document.getElementById('home').value.trim();
+const away=document.getElementById('away').value.trim();
+const league=document.getElementById('league').value;
+const msg=document.getElementById('message');
+const btn=document.getElementById('analyze');
+
+if(!home||!away){msg.textContent='Escribe los dos equipos.';return;}
+if(home.toLowerCase()===away.toLowerCase()){msg.textContent='Los equipos deben ser diferentes.';return;}
+
+btn.disabled=true;
+msg.textContent='Consultando estadísticas...';
+
+try{
+const r=await fetch('/api/analyze',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({home,away,league})
+});
+if(!r.ok)throw Error('Servidor no conectado');
+
+const data=await r.json();
+document.getElementById('match').textContent=home+' vs '+away;
+
+const markets=[
+['Ganador',data.winner],
+['Ambos marcan',data.btts],
+['Más de 1.5 goles',data.over15],
+['Más de 2.5 goles',data.over25],
+['Menos de 2.5 goles',data.under25],
+['Más de 8.5 córners',data.corners],
+['Tarjetas',data.cards],
+['Tiros a puerta',data.shots]
+];
+
+document.getElementById('details').innerHTML=
+'<div class="metric">'+markets.map(([n,v])=>
+'<div>'+n+'<b>'+(v??'Sin datos')+'</b></div>'
+).join('')+'</div>';
+
+document.getElementById('source').textContent=
+'Datos consultados desde el servidor. Revisa la fecha y hora de actualización.';
+document.getElementById('report').classList.remove('hidden');
+msg.textContent='Análisis recibido.';
+}catch(e){
+msg.textContent='Todavía falta conectar el servidor de estadísticas reales. No se mostrarán porcentajes inventados.';
+}finally{
+btn.disabled=false;
+}
+}
+
+async function loadLive(){
+const box=document.getElementById('live-results');
+box.innerHTML='<p class="small">Consultando partidos...</p>';
 try{
 const r=await fetch('/api/live');
+if(!r.ok)throw Error();
+const data=await r.json();
+if(!data.length){box.textContent='No hay partidos disponibles.';return;}
+box.innerHTML=data.map(p=>
+'<div class="result"><b>'+p.home+' '+p.homeGoals+' - '+p.awayGoals+' '+p.away+'</b><p class="small">'+p.minute+' · '+p.status+'</p></div>'
+).join('');
+}catch(e){
+box.innerHTML='<p class="small">El servidor de partidos en vivo todavía no está conectado.</p>';
+}
+}
+</script>
+</body>
+</html>
+
 if(!r.ok)throw Error();
 const data=await r.json();
 if(!data.length){box.textContent='No hay partidos disponibles.';return;}
